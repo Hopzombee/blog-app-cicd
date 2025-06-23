@@ -1,0 +1,54 @@
+---
+- name: Deploy Blog Application
+  hosts: docker
+  become: yes
+  vars:
+    app_name: blog-app
+    app_version: "1.0.0"
+    container_port: 8080
+    host_port: 8086
+
+  tasks:
+    - name: Stop existing container
+      docker_container:
+        name: "{{ app_name }}"
+        state: absent
+      ignore_errors: yes
+
+    - name: Remove existing image
+      docker_image:
+        name: "{{ app_name }}:{{ app_version }}"
+        state: absent
+      ignore_errors: yes
+
+    - name: Build Docker image
+      docker_image:
+        name: "{{ app_name }}:{{ app_version }}"
+        build:
+          path: /home/prashanth/blog-app-cicd
+        source: build
+        state: present
+
+    - name: Run new container
+      docker_container:
+        name: "{{ app_name }}"
+        image: "{{ app_name }}:{{ app_version }}"
+        state: started
+        restart_policy: always
+        ports:
+          - "{{ host_port }}:{{ container_port }}"
+        networks:
+          - name: blog-network
+
+    - name: Wait for application to start
+      wait_for:
+        host: localhost
+        port: "{{ host_port }}"
+        delay: 10
+        timeout: 60
+
+    - name: Verify application health
+      uri:
+        url: "http://localhost:{{ host_port }}/actuator/health"
+        method: GET
+        status_code: 200

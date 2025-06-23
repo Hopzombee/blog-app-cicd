@@ -1,0 +1,29 @@
+---
+- name: Setup Infrastructure
+  hosts: docker
+  become: yes
+
+  tasks:
+    - name: Create Docker network
+      docker_network:
+        name: blog-network
+        state: present
+
+    - name: Create application directories
+      file:
+        path: "{{ item }}"
+        state: directory
+        mode: '0755'
+      loop:
+        - /opt/blog-app
+        - /opt/blog-app/logs
+        - /opt/blog-app/data
+
+    - name: Install required packages
+      apt:
+        name:
+          - curl
+          - wget
+          - htop
+        state: present
+        update_cache: yes
