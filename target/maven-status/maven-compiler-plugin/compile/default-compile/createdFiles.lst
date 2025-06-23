@@ -1,0 +1,5 @@
+com/example/blog/repository/BlogPostRepository.class
+com/example/blog/controller/BlogController.class
+com/example/blog/BlogApplication.class
+com/example/blog/service/BlogService.class
+com/example/blog/model/BlogPost.class
